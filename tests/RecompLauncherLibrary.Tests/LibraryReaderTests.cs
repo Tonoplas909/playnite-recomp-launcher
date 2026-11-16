@@ -79,6 +79,14 @@ namespace RecompLauncherLibrary.Tests
         }
 
         [Fact]
+        public void Read_DeeplyNestedJson_ReturnsNull()
+        {
+            // Pins the depth limit (Newtonsoft >= 13.0.1 defaults to 64; older versions are unbounded and vulnerable to GHSA-5crp-9r3c-p9vr).
+            var nest = new string('[', 100) + new string(']', 100);
+            Assert.Null(LibraryReader.Read(Write(@"{""installed"":{},""x"":" + nest + "}")));
+        }
+
+        [Fact]
         public void Read_EmptyInstalled_ReturnsEmptyListNotNull()
         {
             var r = LibraryReader.Read(Write(@"{""installed"":{}}"));

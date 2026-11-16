@@ -1,4 +1,5 @@
 using System.Linq;
+using Playnite.SDK.Models;
 using Xunit;
 
 namespace RecompLauncherLibrary.Tests
@@ -28,6 +29,36 @@ namespace RecompLauncherLibrary.Tests
         [Fact]
         public void ToMetadata_NameEmpty_UsesId() =>
             Assert.Equal("recompia", GameMapper.ToMetadata(Entry(name: "")).Name);
+
+        [Fact]
+        public void ToMetadata_WithCatalogInfo_UsesOriginalGameNameAndPlatform()
+        {
+            var info = new CatalogInfo { GameName = "The Legend of Zelda: Tears of the Kingdom", Origin = "switch" };
+            var m = GameMapper.ToMetadata(Entry(name: "TotK Recomp"), info);
+            Assert.Equal("The Legend of Zelda: Tears of the Kingdom", m.Name);
+            var platform = Assert.Single(m.Platforms);
+            Assert.Equal("nintendo_switch", Assert.IsType<MetadataSpecProperty>(platform).Id);
+        }
+
+        [Fact]
+        public void ToMetadata_NoCatalogInfo_KeepsEntryNameAndNoPlatform()
+        {
+            var m = GameMapper.ToMetadata(Entry(name: "Longshot"), null);
+            Assert.Equal("Longshot", m.Name);
+            Assert.True(m.Platforms == null || m.Platforms.Count == 0);
+        }
+
+        [Fact]
+        public void ToMetadata_UnmappedOriginOrEmptyGameName_NoPlatformAndEntryName()
+        {
+            var m = GameMapper.ToMetadata(Entry(name: "Thing"), new CatalogInfo { GameName = "", Origin = "other" });
+            Assert.Equal("Thing", m.Name);
+            Assert.True(m.Platforms == null || m.Platforms.Count == 0);
+        }
+
+        [Fact]
+        public void ToMetadata_AlwaysSetsRecompLauncherSource() =>
+            Assert.Equal("RecompLauncher", Assert.IsType<MetadataNameProperty>(GameMapper.ToMetadata(Entry()).Source).Name);
 
         [Fact]
         public void ToMetadata_HasNoFrozenGameActions() =>

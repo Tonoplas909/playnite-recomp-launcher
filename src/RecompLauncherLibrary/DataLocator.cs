@@ -20,6 +20,10 @@ namespace RecompLauncherLibrary
             return Path.Combine(appData, "com.recomplauncher.app", "library.json");
         }
 
+        /// <summary>RecompLauncher's cached catalog, in the cache folder beside library.json.</summary>
+        public static string CatalogPath(string libraryJsonPath) =>
+            Path.Combine(Path.GetDirectoryName(libraryJsonPath), "cache", "pc-catalog.json");
+
         public static string FindExe(IEnumerable<string> candidates) =>
             candidates.FirstOrDefault(File.Exists);
 

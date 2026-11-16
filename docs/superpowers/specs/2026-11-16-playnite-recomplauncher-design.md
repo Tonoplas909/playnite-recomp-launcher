@@ -32,5 +32,8 @@ Playnite doit refléter ce qui est installé et pouvoir le lancer, sans réinsta
 - Sens unique RecompLauncher → Playnite. Une entrée absente de `library.json` est retirée de Playnite (choix par défaut, validé implicitement).
 - Paramètres du plugin : chemin de RecompLauncher (auto-détecté si possible, modifiable).
 
+## Ajout : métadonnées IGDB (2026-11-16, demandé par l'utilisateur)
+Pour que le fournisseur IGDB intégré à Playnite retrouve le jeu d'origine, le plugin lit le catalogue en cache de RecompLauncher (`cache\pc-catalog.json`, à côté de `library.json`) : nom du jeu d'origine (`about.name`, sinon `game`) et console d'origine (`origin`), traduite en identifiant de plateforme Playnite (`PlatformSpecs`). Les jeux reçoivent aussi la source « RecompLauncher ». Recomp absente du catalogue (ex. Longshot) : nom RecompLauncher conservé, pas de plateforme. Le catalogue est facultatif : toute erreur de lecture = pas d'enrichissement, la synchro continue. Playnite n'applique nom/plateforme qu'à la création d'un jeu : un jeu déjà importé doit être supprimé de Playnite puis réimporté.
+
 ## Laissé au builder
 Détection automatique du chemin, nom/ID du plugin, mise en page des paramètres, métadonnées (icônes) si disponibles.

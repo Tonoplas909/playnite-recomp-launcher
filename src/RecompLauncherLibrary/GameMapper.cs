@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text;
 using Playnite.SDK.Models;
 
@@ -9,15 +10,22 @@ namespace RecompLauncherLibrary
         /// No GameActions on purpose: Playnite only applies them when a game is first imported, which
         /// would freeze the exe path. Launching is done by the plugin's GetPlayActions instead.
         /// </summary>
-        public static GameMetadata ToMetadata(RecompEntry entry) =>
-            new GameMetadata
+        public static GameMetadata ToMetadata(RecompEntry entry, CatalogInfo info = null)
+        {
+            // The original game's name + platform let Playnite's metadata providers (IGDB) find the game.
+            var originalName = info?.GameName ?? "";
+            var spec = PlatformSpecs.FromOrigin(info?.Origin);
+            return new GameMetadata
             {
                 GameId = entry.Id,
-                Name = entry.Name.Length > 0 ? entry.Name : entry.Id,
+                Name = originalName.Length > 0 ? originalName : entry.Name.Length > 0 ? entry.Name : entry.Id,
+                Source = new MetadataNameProperty("RecompLauncher"),
+                Platforms = spec == null ? null : new HashSet<MetadataProperty> { new MetadataSpecProperty(spec) },
                 IsInstalled = true,
                 InstallDirectory = entry.Path,
                 Version = VersionOf(entry),
             };
+        }
 
         public static string VersionOf(RecompEntry entry) => entry.Version.Length > 0 ? entry.Version : entry.Tag;
 

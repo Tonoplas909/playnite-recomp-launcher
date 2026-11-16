@@ -44,8 +44,12 @@ namespace RecompLauncherLibrary
                 return none; // no removal when we can't read the source
             }
 
-            var entries = LibraryReader.Read(DataLocator.LibraryJsonPath(exe, Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)));
+            var libraryPath = DataLocator.LibraryJsonPath(exe, Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
+            var entries = LibraryReader.Read(libraryPath);
             if (entries == null) return none; // unreadable library.json: change nothing
+
+            // Optional: original game name + platform, so Playnite's metadata providers can match the game.
+            var catalog = CatalogReader.Read(DataLocator.CatalogPath(libraryPath));
 
             var existing = PlayniteApi.Database.Games.Where(g => g.PluginId == Id).ToList();
 
@@ -67,7 +71,7 @@ namespace RecompLauncherLibrary
                 }
             }
 
-            return entries.Select(GameMapper.ToMetadata).ToList();
+            return entries.Select(e => GameMapper.ToMetadata(e, catalog.TryGetValue(e.Id, out var info) ? info : null)).ToList();
         }
 
         // Launch goes through here (not through GameActions stored in the database) so that a

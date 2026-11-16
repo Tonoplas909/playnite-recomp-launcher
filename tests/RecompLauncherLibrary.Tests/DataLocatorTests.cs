@@ -48,6 +48,13 @@ namespace RecompLauncherLibrary.Tests
         }
 
         [Fact]
+        public void CatalogPath_IsCacheFolderBesideLibraryJson()
+        {
+            var lib = Path.Combine(appData, "com.recomplauncher.app", "library.json");
+            Assert.Equal(Path.Combine(appData, "com.recomplauncher.app", "cache", "pc-catalog.json"), DataLocator.CatalogPath(lib));
+        }
+
+        [Fact]
         public void FindExe_ReturnsFirstExisting() =>
             Assert.Equal(exe, DataLocator.FindExe(new[] { Path.Combine(dir, "missing.exe"), exe, Path.Combine(dir, "other.exe") }));
 

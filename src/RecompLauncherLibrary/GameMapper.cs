@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Playnite.SDK.Models;
@@ -24,8 +25,16 @@ namespace RecompLauncherLibrary
                 IsInstalled = true,
                 InstallDirectory = entry.Path,
                 Version = VersionOf(entry),
+                Playtime = entry.PlayedSecs,
+                LastActivity = LastActivityOf(entry),
             };
         }
+
+        // 253402300799 = 9999-12-31T23:59:59Z, the last second DateTimeOffset can hold.
+        private static DateTime? LastActivityOf(RecompEntry entry) =>
+            entry.LastPlayed > 0 && entry.LastPlayed <= 253402300799UL
+                ? DateTimeOffset.FromUnixTimeSeconds((long)entry.LastPlayed).LocalDateTime
+                : (DateTime?)null;
 
         public static string VersionOf(RecompEntry entry) => entry.Version.Length > 0 ? entry.Version : entry.Tag;
 

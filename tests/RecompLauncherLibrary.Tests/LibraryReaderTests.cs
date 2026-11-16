@@ -45,6 +45,32 @@ namespace RecompLauncherLibrary.Tests
         }
 
         [Fact]
+        public void Read_PlayTimeFields_AreRead()
+        {
+            var p = Write(@"{""installed"":{""a"":{""id"":""a"",""name"":""A"",""tag"":""t"",""path"":""C:\\a"",""played_secs"":3600,""last_played"":1794861505}}}");
+            var e = Assert.Single(LibraryReader.Read(p));
+            Assert.Equal(3600UL, e.PlayedSecs);
+            Assert.Equal(1794861505UL, e.LastPlayed);
+        }
+
+        [Fact]
+        public void Read_MissingOrNonNumericPlayTime_IsZero()
+        {
+            var p = Write(@"{""installed"":{""a"":{""id"":""a"",""name"":""A""},""b"":{""id"":""b"",""played_secs"":""lots"",""last_played"":null}}}");
+            var r = LibraryReader.Read(p);
+            Assert.All(r, e => { Assert.Equal(0UL, e.PlayedSecs); Assert.Equal(0UL, e.LastPlayed); });
+        }
+
+        [Fact]
+        public void Read_NegativePlayTime_IsZero()
+        {
+            var p = Write(@"{""installed"":{""a"":{""id"":""a"",""played_secs"":-5,""last_played"":-1}}}");
+            var e = Assert.Single(LibraryReader.Read(p));
+            Assert.Equal(0UL, e.PlayedSecs);
+            Assert.Equal(0UL, e.LastPlayed);
+        }
+
+        [Fact]
         public void Read_IdMissingInEntry_FallsBackToKey()
         {
             var p = Write(@"{""installed"":{""keyid"":{""name"":""K"",""tag"":""t"",""path"":""C:\\k""}}}");

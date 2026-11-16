@@ -14,6 +14,10 @@ namespace RecompLauncherLibrary
         public string Version { get; set; } = "";
         public string Path { get; set; } = "";
         public string Exe { get; set; }
+        /// <summary>Total play time in seconds (RecompLauncher's played_secs).</summary>
+        public ulong PlayedSecs { get; set; }
+        /// <summary>Unix seconds of the last session, 0 = never played.</summary>
+        public ulong LastPlayed { get; set; }
     }
 
     public static class LibraryReader
@@ -53,10 +57,15 @@ namespace RecompLauncherLibrary
                     Version = Str(o, "version"),
                     Path = Str(o, "path"),
                     Exe = o["exe"]?.Type == JTokenType.String ? (string)o["exe"] : null,
+                    PlayedSecs = U64(o["played_secs"]),
+                    LastPlayed = U64(o["last_played"]),
                 });
             }
             return list;
         }
+
+        private static ulong U64(JToken t) =>
+            t is JValue v && v.Value is long l && l >= 0 ? (ulong)l : 0UL;
 
         private static string Str(JObject o, string name) =>
             o[name]?.Type == JTokenType.String ? (string)o[name] : "";

@@ -57,6 +57,33 @@ namespace RecompLauncherLibrary.Tests
         }
 
         [Fact]
+        public void ToMetadata_MapsPlaytimeAndLastActivity()
+        {
+            var e = Entry();
+            e.PlayedSecs = 3600;
+            e.LastPlayed = 1794861505;
+            var m = GameMapper.ToMetadata(e);
+            Assert.Equal(3600UL, m.Playtime);
+            Assert.Equal(System.DateTimeOffset.FromUnixTimeSeconds(1794861505).LocalDateTime, m.LastActivity);
+        }
+
+        [Fact]
+        public void ToMetadata_AbsurdLastPlayed_NoLastActivityAndNoException()
+        {
+            var e = Entry();
+            e.LastPlayed = ulong.MaxValue;
+            Assert.Null(GameMapper.ToMetadata(e).LastActivity);
+        }
+
+        [Fact]
+        public void ToMetadata_NeverPlayed_NoLastActivity()
+        {
+            var m = GameMapper.ToMetadata(Entry());
+            Assert.Equal(0UL, m.Playtime);
+            Assert.Null(m.LastActivity);
+        }
+
+        [Fact]
         public void ToMetadata_AlwaysSetsRecompLauncherSource() =>
             Assert.Equal("RecompLauncher", Assert.IsType<MetadataNameProperty>(GameMapper.ToMetadata(Entry()).Source).Name);
 

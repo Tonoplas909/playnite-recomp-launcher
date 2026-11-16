@@ -1,0 +1,11 @@
+AddonId: 'RecompLauncherLibrary'
+Type: GameLibrary
+Name: 'RecompLauncher Library'
+Author: 'Tonoplas909'
+ShortDescription: "Imports the games installed in RecompLauncher (original name, platform, icon, play time) and launches them through it."
+Description: "Imports the recomps installed with RecompLauncher as Playnite games and launches them through RecompLauncher. Games get the original game's name and platform so Playnite's IGDB metadata provider can find them, RecompLauncher's icon, and RecompLauncher's play time and last played date. Games uninstalled in RecompLauncher are removed from Playnite."
+InstallerManifestUrl: https://raw.githubusercontent.com/Tonoplas909/playnite-recomp-launcher/main/addon/installer.yaml
+SourceUrl: https://github.com/Tonoplas909/playnite-recomp-launcher
+Tags: ['recomp', 'recomplauncher', 'library']
+Links:
+    Website: https://github.com/Tonoplas909/playnite-recomp-launcher

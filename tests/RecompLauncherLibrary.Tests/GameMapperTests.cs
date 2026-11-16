@@ -1,6 +1,4 @@
-using System.IO;
 using System.Linq;
-using Playnite.SDK.Models;
 using Xunit;
 
 namespace RecompLauncherLibrary.Tests
@@ -15,7 +13,7 @@ namespace RecompLauncherLibrary.Tests
         [Fact]
         public void ToMetadata_MapsFields()
         {
-            var m = GameMapper.ToMetadata(Entry(), Exe);
+            var m = GameMapper.ToMetadata(Entry());
             Assert.Equal("recompia", m.GameId);
             Assert.Equal("Recompia", m.Name);
             Assert.True(m.IsInstalled);
@@ -25,29 +23,27 @@ namespace RecompLauncherLibrary.Tests
 
         [Fact]
         public void ToMetadata_VersionEmpty_UsesTag() =>
-            Assert.Equal("v1", GameMapper.ToMetadata(Entry(version: ""), Exe).Version);
+            Assert.Equal("v1", GameMapper.ToMetadata(Entry(version: "")).Version);
 
         [Fact]
         public void ToMetadata_NameEmpty_UsesId() =>
-            Assert.Equal("recompia", GameMapper.ToMetadata(Entry(name: ""), Exe).Name);
+            Assert.Equal("recompia", GameMapper.ToMetadata(Entry(name: "")).Name);
 
         [Fact]
-        public void ToMetadata_PlayAction()
-        {
-            var a = Assert.Single(GameMapper.ToMetadata(Entry(), Exe).GameActions);
-            Assert.Equal(GameActionType.File, a.Type);
-            Assert.Equal(Exe, a.Path);
-            Assert.Equal("--play \"recompia\"", a.Arguments);
-            Assert.Equal(Path.GetDirectoryName(Exe), a.WorkingDir);
-            Assert.True(a.IsPlayAction);
-        }
+        public void ToMetadata_HasNoFrozenGameActions() =>
+            // Launching goes through the plugin's GetPlayActions so the exe path is never frozen into the game.
+            Assert.True(GameMapper.ToMetadata(Entry()).GameActions == null || !GameMapper.ToMetadata(Entry()).GameActions.Any());
 
         [Fact]
-        public void ToMetadata_IdWithSpaceOrQuote_IsQuoted() =>
-            Assert.Equal("--play \"a b\\\"c\"", GameMapper.ToMetadata(Entry(id: "a b\"c"), Exe).GameActions.Single().Arguments);
+        public void PlayArguments_Plain() =>
+            Assert.Equal("--play \"recompia\"", GameMapper.PlayArguments("recompia"));
 
         [Fact]
-        public void ToMetadata_IdEndingWithBackslash_DoublesItBeforeClosingQuote() =>
-            Assert.Equal("--play \"a\\\\\"", GameMapper.ToMetadata(Entry(id: "a\\"), Exe).GameActions.Single().Arguments);
+        public void PlayArguments_IdWithSpaceOrQuote_IsQuoted() =>
+            Assert.Equal("--play \"a b\\\"c\"", GameMapper.PlayArguments("a b\"c"));
+
+        [Fact]
+        public void PlayArguments_IdEndingWithBackslash_DoublesItBeforeClosingQuote() =>
+            Assert.Equal("--play \"a\\\\\"", GameMapper.PlayArguments("a\\"));
     }
 }

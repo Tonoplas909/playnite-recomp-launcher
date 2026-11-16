@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using Playnite.SDK.Models;
 
@@ -7,27 +5,23 @@ namespace RecompLauncherLibrary
 {
     public static class GameMapper
     {
-        public static GameMetadata ToMetadata(RecompEntry entry, string recompLauncherExe) =>
+        /// <summary>
+        /// No GameActions on purpose: Playnite only applies them when a game is first imported, which
+        /// would freeze the exe path. Launching is done by the plugin's GetPlayActions instead.
+        /// </summary>
+        public static GameMetadata ToMetadata(RecompEntry entry) =>
             new GameMetadata
             {
                 GameId = entry.Id,
                 Name = entry.Name.Length > 0 ? entry.Name : entry.Id,
                 IsInstalled = true,
                 InstallDirectory = entry.Path,
-                Version = entry.Version.Length > 0 ? entry.Version : entry.Tag,
-                GameActions = new List<GameAction>
-                {
-                    new GameAction
-                    {
-                        Name = "Play",
-                        Type = GameActionType.File,
-                        Path = recompLauncherExe,
-                        Arguments = "--play " + Quote(entry.Id),
-                        WorkingDir = Path.GetDirectoryName(recompLauncherExe),
-                        IsPlayAction = true,
-                    },
-                },
+                Version = VersionOf(entry),
             };
+
+        public static string VersionOf(RecompEntry entry) => entry.Version.Length > 0 ? entry.Version : entry.Tag;
+
+        public static string PlayArguments(string gameId) => "--play " + Quote(gameId);
 
         /// <summary>Windows command-line quoting: backslashes only matter right before a quote.</summary>
         private static string Quote(string s)

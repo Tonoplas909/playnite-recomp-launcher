@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows.Controls;
 using Playnite.SDK;
@@ -47,17 +48,49 @@ namespace RecompLauncherLibrary
             if (entries == null) return none; // unreadable library.json: change nothing
 
             var existing = PlayniteApi.Database.Games.Where(g => g.PluginId == Id).ToList();
+
             var stale = new HashSet<string>(StaleGames.Find(existing.Select(g => g.GameId), entries));
             if (stale.Count > 0)
+            {
                 PlayniteApi.Database.Games.Remove(existing.Where(g => stale.Contains(g.GameId)).ToList());
+                existing = existing.Where(g => !stale.Contains(g.GameId)).ToList();
+            }
 
-            return entries.Select(e => GameMapper.ToMetadata(e, exe)).ToList();
+            // Playnite does not refresh the Version of an already imported game.
+            var versions = existing.Where(g => g.GameId != null).GroupBy(g => g.GameId).ToDictionary(g => g.Key, g => g.First().Version ?? "");
+            foreach (var change in VersionUpdates.Find(versions, entries))
+            {
+                foreach (var game in existing.Where(g => g.GameId == change.Key))
+                {
+                    game.Version = change.Value;
+                    PlayniteApi.Database.Games.Update(game);
+                }
+            }
+
+            return entries.Select(GameMapper.ToMetadata).ToList();
+        }
+
+        // Launch goes through here (not through GameActions stored in the database) so that a
+        // moved or re-pointed recomplauncher.exe applies to games that are already imported.
+        public override IEnumerable<PlayController> GetPlayActions(GetPlayActionsArgs args)
+        {
+            if (args.Game.PluginId != Id) yield break;
+            var exe = ResolveExe();
+            if (exe == null) yield break;
+            yield return new AutomaticPlayController(args.Game)
+            {
+                Name = "Play",
+                Type = AutomaticPlayActionType.File,
+                Path = exe,
+                Arguments = GameMapper.PlayArguments(args.Game.GameId),
+                WorkingDir = Path.GetDirectoryName(exe),
+            };
         }
 
         private string ResolveExe()
         {
             var configured = settings.Settings.ExePath;
-            if (configured.Length > 0 && System.IO.File.Exists(configured)) return configured;
+            if (configured.Length > 0 && File.Exists(configured)) return configured;
             return DataLocator.FindExe(DataLocator.DefaultExeCandidates());
         }
     }

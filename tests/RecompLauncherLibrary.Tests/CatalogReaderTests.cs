@@ -39,6 +39,44 @@ namespace RecompLauncherLibrary.Tests
             var r = CatalogReader.Read(Write(@"{""apps"":[{""id"":""a""}]}"));
             Assert.Equal("", r["a"].GameName);
             Assert.Equal("", r["a"].Origin);
+            Assert.Equal("", r["a"].Icon);
+        }
+
+        [Fact]
+        public void Read_Icon_IsRead() =>
+            Assert.Equal("https://recompstore.com/media/i.png",
+                CatalogReader.Read(Write(@"{""apps"":[{""id"":""a"",""icon"":""https://recompstore.com/media/i.png""}]}"))["a"].Icon);
+
+        [Fact]
+        public void Read_AppsMinList_IsAlsoRead()
+        {
+            // Real catalog shape: apps_min is a list of groups [{apps:[...], min:"launcher version"}].
+            // Newer recomps (e.g. Longshot) live there, not in apps.
+            var r = CatalogReader.Read(Write(@"{""apps"":[{""id"":""a"",""game"":""A""}],
+              ""apps_min"":[{""apps"":[{""id"":""longshot"",""game"":""The Legend of Zelda: Ocarina of Time"",""origin"":""switch2"",""icon"":""https://x/i.png""}],""min"":""0.90.0""},
+                            {""apps"":[{""id"":""b"",""game"":""B""}],""min"":""0.91.0""}]}"));
+            Assert.Equal(3, r.Count);
+            Assert.Equal("The Legend of Zelda: Ocarina of Time", r["longshot"].GameName);
+            Assert.Equal("switch2", r["longshot"].Origin);
+            Assert.Equal("https://x/i.png", r["longshot"].Icon);
+        }
+
+        [Fact]
+        public void Read_IdInBothLists_AppsWins()
+        {
+            var r = CatalogReader.Read(Write(@"{""apps"":[{""id"":""a"",""game"":""From apps""}],""apps_min"":[{""apps"":[{""id"":""a"",""game"":""From min""}]}]}"));
+            Assert.Equal("From apps", Assert.Single(r).Value.GameName);
+        }
+
+        [Fact]
+        public void Read_MalformedAppsMin_IsIgnored()
+        {
+            // not a list, a list of non-objects, a group without apps: the main list still reads.
+            foreach (var bad in new[] { @"{""apps"":[]}", "[1,2]", @"[{""min"":""0.9""}]", @"[{""apps"":{}}]" })
+            {
+                var r = CatalogReader.Read(Write(@"{""apps"":[{""id"":""a""}],""apps_min"":" + bad + "}"));
+                Assert.Single(r);
+            }
         }
 
         [Fact]

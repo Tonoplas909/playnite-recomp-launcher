@@ -13,6 +13,8 @@ namespace RecompLauncherLibrary
         public string GameName { get; set; } = "";
         /// <summary>RecompLauncher's console id for the original game (switch, n64, ...), "" when unknown.</summary>
         public string Origin { get; set; } = "";
+        /// <summary>URL of the recomp's small icon (the one RecompLauncher shows), "" when none.</summary>
+        public string Icon { get; set; } = "";
     }
 
     public static class CatalogReader
@@ -37,18 +39,20 @@ namespace RecompLauncherLibrary
                 return result;
             }
 
-            var apps = root["apps"] as JArray;
-            if (apps == null) return result;
-
-            foreach (var app in apps.OfType<JObject>())
+            // The main list, then apps_min: groups [{apps:[...], min:"launcher version"}] holding newer
+            // recomps (e.g. Longshot). The main list wins when an id is in both.
+            var groups = (root["apps_min"] as JArray)?.OfType<JObject>().Select(g => g["apps"] as JArray) ?? Enumerable.Empty<JArray>();
+            var lists = new[] { root["apps"] as JArray }.Concat(groups);
+            foreach (var app in lists.Where(l => l != null).SelectMany(l => l.OfType<JObject>()))
             {
                 var id = Str(app["id"]);
-                if (id.Length == 0) continue;
+                if (id.Length == 0 || result.ContainsKey(id)) continue;
                 var aboutName = Str((app["about"] as JObject)?["name"]);
                 result[id] = new CatalogInfo
                 {
                     GameName = aboutName.Length > 0 ? aboutName : Str(app["game"]),
                     Origin = Str(app["origin"]),
+                    Icon = Str(app["icon"]),
                 };
             }
             return result;

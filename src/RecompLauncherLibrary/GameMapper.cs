@@ -22,6 +22,8 @@ namespace RecompLauncherLibrary
                 Name = originalName.Length > 0 ? originalName : entry.Name.Length > 0 ? entry.Name : entry.Id,
                 Source = new MetadataNameProperty("RecompLauncher"),
                 Platforms = spec == null ? null : new HashSet<MetadataProperty> { new MetadataSpecProperty(spec) },
+                // IGDB provides covers/backgrounds but no small icon, so take RecompLauncher's own.
+                Icon = string.IsNullOrEmpty(info?.Icon) ? null : new MetadataFile(info.Icon),
                 IsInstalled = true,
                 InstallDirectory = entry.Path,
                 Version = VersionOf(entry),

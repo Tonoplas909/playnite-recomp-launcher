@@ -41,6 +41,20 @@ namespace RecompLauncherLibrary.Tests
         }
 
         [Fact]
+        public void ToMetadata_WithIcon_SetsIconFile()
+        {
+            var m = GameMapper.ToMetadata(Entry(), new CatalogInfo { Icon = "https://recompstore.com/media/i.png" });
+            Assert.Equal("https://recompstore.com/media/i.png", m.Icon.Path);
+        }
+
+        [Fact]
+        public void ToMetadata_NoIcon_NoIconFile()
+        {
+            Assert.Null(GameMapper.ToMetadata(Entry(), new CatalogInfo { Icon = "" }).Icon);
+            Assert.Null(GameMapper.ToMetadata(Entry(), null).Icon);
+        }
+
+        [Fact]
         public void ToMetadata_NoCatalogInfo_KeepsEntryNameAndNoPlatform()
         {
             var m = GameMapper.ToMetadata(Entry(name: "Longshot"), null);

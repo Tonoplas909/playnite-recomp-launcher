@@ -35,6 +35,9 @@ Playnite doit refléter ce qui est installé et pouvoir le lancer, sans réinsta
 ## Ajout : métadonnées IGDB (2026-11-16, demandé par l'utilisateur)
 Pour que le fournisseur IGDB intégré à Playnite retrouve le jeu d'origine, le plugin lit le catalogue en cache de RecompLauncher (`cache\pc-catalog.json`, à côté de `library.json`) : nom du jeu d'origine (`about.name`, sinon `game`) et console d'origine (`origin`), traduite en identifiant de plateforme Playnite (`PlatformSpecs`). Les jeux reçoivent aussi la source « RecompLauncher ». Recomp absente du catalogue (ex. Longshot) : nom RecompLauncher conservé, pas de plateforme. Le catalogue est facultatif : toute erreur de lecture = pas d'enrichissement, la synchro continue. Playnite n'applique nom/plateforme qu'à la création d'un jeu : un jeu déjà importé doit être supprimé de Playnite puis réimporté.
 
+## Ajout : icône et catalogue `apps_min` (2026-11-16, demandé par l'utilisateur)
+L'icône du catalogue (`icon`, URL) devient l'icône Playnite du jeu (IGDB ne fournit pas d'icône). Le catalogue a deux listes : `apps` et `apps_min`, qui est une liste de groupes `[{apps:[...], min:"version du lanceur"}]` contenant les recomps récentes (ex. Longshot, absent de `apps`). Les deux sont lues, `apps` l'emporte si un id est dans les deux.
+
 ## Ajout : temps de jeu (2026-11-16, demandé par l'utilisateur)
 `played_secs` (secondes) et `last_played` (secondes Unix, 0 = jamais) de `library.json` alimentent `Playtime` et `LastActivity` de Playnite à chaque synchro. RecompLauncher est la source de vérité : sa valeur écrase celle de Playnite (une session lancée depuis Playnite via `--play` est comptée par RecompLauncher, donc pas de double comptage).
 
